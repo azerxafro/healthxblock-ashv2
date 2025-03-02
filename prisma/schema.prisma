@@ -12,9 +12,33 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model Entry {
+
+model Patient {
   id        String   @id @default(cuid())
-  title     String
-  content   String
+  name      String
+  diagnosis String
+  doctorId  String   // Reference to Doctor (optional)
+  createdAt DateTime @default(now())
+}
+
+model Doctor {
+  id        String   @id @default(cuid())
+  name      String
+  specialty String
+  createdAt DateTime @default(now())
+}
+
+model InsuranceClaim {
+  id        String   @id @default(cuid())
+  patientId String   // Reference to Patient
+  company   String
+  amount    Float    // For monetary amounts
+  createdAt DateTime @default(now())
+}
+
+model PharmacyRecord {
+  id        String   @id @default(cuid())
+  name      String
+  medicine  String
   createdAt DateTime @default(now())
 }
