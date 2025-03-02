@@ -17,7 +17,7 @@ model Patient {
   id        String   @id @default(cuid())
   name      String
   diagnosis String
-  doctorId  String   // Reference to Doctor (optional)
+  doctorId  String?  // Optional, nullable
   createdAt DateTime @default(now())
 }
 
@@ -25,12 +25,13 @@ model Doctor {
   id        String   @id @default(cuid())
   name      String
   specialty String
+  hospitalId String? // Optional, nullable
   createdAt DateTime @default(now())
 }
 
 model InsuranceClaim {
   id        String   @id @default(cuid())
-  patientId String   // Reference to Patient
+  patientId String
   company   String
   amount    Float    // For monetary amounts
   createdAt DateTime @default(now())
@@ -40,5 +41,6 @@ model PharmacyRecord {
   id        String   @id @default(cuid())
   name      String
   medicine  String
+  dosage    String?  // Optional, nullable
   createdAt DateTime @default(now())
 }

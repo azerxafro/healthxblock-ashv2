@@ -9,6 +9,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
+import { PrismaClient } from "@prisma/client"
+
+const prisma = new PrismaClient()
 
 const formSchema = z.object({
   entityType: z.enum(["patient", "doctor", "insurance", "pharmacy"], {
@@ -41,21 +44,72 @@ export default function DataEntryForm({ onSubmit }) {
     },
   })
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSubmit(values.entityType, values)
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      switch (values.entityType) {
+        case "patient":
+          await prisma.patient.create({
+            data: {
+              id: values.id,
+              name: values.name,
+              diagnosis: values.extra1,
+              doctorId: values.extra2 || null, // Optional field
+            },
+          })
+          break
+        case "doctor":
+          await prisma.doctor.create({
+            data: {
+              id: values.id,
+              name: values.name,
+              specialty: values.extra1,
+              hospitalId: values.extra2 || null, // Optional field
+            },
+          })
+          break
+        case "insurance":
+          await prisma.insuranceClaim.create({
+            data: {
+              id: values.id,
+              patientId: values.name, // Using "name" as Patient ID for Insurance
+              company: values.extra1,
+              amount: parseFloat(values.extra2 || "0"), // Convert to number, default to 0 if empty
+            },
+          })
+          break
+        case "pharmacy":
+          await prisma.pharmacyRecord.create({
+            data: {
+              id: values.id,
+              name: values.name,
+              medicine: values.extra1,
+              dosage: values.extra2 || null, // Optional field
+            },
+          })
+          break
+        default:
+          throw new Error("Invalid entity type")
+      }
 
-    toast({
-      title: "Record Added Successfully",
-      description: `New ${values.entityType} record has been added to the blockchain.`,
-    })
+      toast({
+        title: "Record Added Successfully",
+        description: `New ${values.entityType} record has been added to the database.`,
+      })
 
-    form.reset({
-      entityType: values.entityType,
-      id: "",
-      name: "",
-      extra1: "",
-      extra2: "",
-    })
+      form.reset({
+        entityType: values.entityType,
+        id: "",
+        name: "",
+        extra1: "",
+        extra2: "",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to save ${values.entityType} record: ${error.message}`,
+        variant: "destructive",
+      })
+    }
   }
 
   const getFieldLabels = (type) => {
