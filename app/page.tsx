@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react"
 import DataEntryForm from "@/components/data-entry-form"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
 
 export default function Home() {
   const [patients, setPatients] = useState([])
@@ -15,14 +12,16 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const patientsData = await prisma.patient.findMany()
-        const doctorsData = await prisma.doctor.findMany()
-        const insuranceData = await prisma.insuranceClaim.findMany()
-        const pharmacyData = await prisma.pharmacyRecord.findMany()
-        setPatients(patientsData)
-        setDoctors(doctorsData)
-        setInsuranceClaims(insuranceData)
-        setPharmacyRecords(pharmacyData)
+        const response = await fetch("/api/save-entry")
+        const data = await response.json()
+        if (data.success) {
+          setPatients(data.patients || [])
+          setDoctors(data.doctors || [])
+          setInsuranceClaims(data.insuranceClaims || [])
+          setPharmacyRecords(data.pharmacyRecords || [])
+        } else {
+          console.error("Error fetching data:", data.error)
+        }
       } catch (error) {
         console.error("Error fetching data:", error)
       }
@@ -31,7 +30,7 @@ export default function Home() {
   }, [])
 
   const handleSubmit = async (entityType, values) => {
-    // This function is already handled in DataEntryForm, but you can add additional logic here if needed
+    // No additional logic needed here; DataEntryForm handles submission
   }
 
   return (
